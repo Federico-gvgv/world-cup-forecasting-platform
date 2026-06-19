@@ -64,3 +64,6 @@ Thumbs.db
 
 # Docker / local runtime
 *.pid
+
+# Other
+notes/
