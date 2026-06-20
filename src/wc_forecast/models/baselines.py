@@ -70,49 +70,49 @@ class EloLogisticRegressionBaseline:
             ]
         )
 
-        def fit(
-                self,
-                matches: pd.DataFrame,
-                target_column: str = "match_outcome",
-        ) -> "EloLogisticRegressionBaseline":
-            self._validate_columns(matches, include_target=True, target_column=target_column)
+    def fit(
+            self,
+            matches: pd.DataFrame,
+            target_column: str = "match_outcome",
+    ) -> "EloLogisticRegressionBaseline":
+        self._validate_columns(matches, include_target=True, target_column=target_column)
 
-            X = matches[self.feature_columns].copy()
-            y = matches[target_column]
+        X = matches[self.feature_columns].copy()
+        y = matches[target_column]
 
-            self.model.fit(X, y)
+        self.model.fit(X, y)
 
-            return self
-        
-        def predict_proba(self, matches: pd.DataFrame) -> np.ndarray:
-            self._validate_columns(matches, include_target=False)
+        return self
+    
+    def predict_proba(self, matches: pd.DataFrame) -> np.ndarray:
+        self._validate_columns(matches, include_target=False)
 
-            X = matches[self.feature_columns].copy()
+        X = matches[self.feature_columns].copy()
 
-            raw_proba = self.model.predict_proba(X)
-            model_classes = list(self.model.named_steps["logistic_regression"].classes_)
+        raw_proba = self.model.predict_proba(X)
+        model_classes = list(self.model.named_steps["logistic_regression"].classes_)
 
-            aligned_proba = np.zeros((len(matches), len(self.classes)))
+        aligned_proba = np.zeros((len(matches), len(self.classes)))
 
-            for output_idx, class_name in enumerate(self.classes):
-                if class_name in model_classes:
-                    model_class_idx = model_classes.index(class_name)
-                    aligned_proba[:, output_idx] = raw_proba[:, model_class_idx]
+        for output_idx, class_name in enumerate(self.classes):
+            if class_name in model_classes:
+                model_class_idx = model_classes.index(class_name)
+                aligned_proba[:, output_idx] = raw_proba[:, model_class_idx]
 
-            return aligned_proba
-        
-        def _validate_columns(
-                self,
-                matches: pd.DataFrame,
-                include_target: bool,
-                target_column: str = "match_outcome",
-        ) -> None:
-            required_columns = set(self.feature_columns)
+        return aligned_proba
+    
+    def _validate_columns(
+            self,
+            matches: pd.DataFrame,
+            include_target: bool,
+            target_column: str = "match_outcome",
+    ) -> None:
+        required_columns = set(self.feature_columns)
 
-            if include_target:
-                required_columns.add(target_column)
+        if include_target:
+            required_columns.add(target_column)
 
-            missing_columns = required_columns - set(matches.columns)
+        missing_columns = required_columns - set(matches.columns)
 
-            if missing_columns:
-                raise ValueError(f"Missing required columns: {missing_columns}")
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
