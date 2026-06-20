@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score, log_loss
 
-OUTCOME_CLASSES = ["HOME_WIN", "DRAW", "AWAY_WIN"]
+OUTCOME_CLASSES = ["AWAY_WIN", "DRAW", "HOME_WIN"]
 
 def multiclass_brier_score(
         y_true: pd.Series,
@@ -20,7 +20,7 @@ def multiclass_brier_score(
     """
     classes = classes or OUTCOME_CLASSES
 
-    y_true_array = y_true.to_clipboard
+    y_true_array = y_true.to_numpy()
     y_one_hot = np.zeros((len(y_true_array), len(classes)))
 
     class_to_index = {cls: idx for idx, cls in enumerate(classes)}
