@@ -75,7 +75,23 @@ def clean_results(raw_matches: pd.DataFrame) -> pd.DataFrame:
 
     # If neutral column exists, make sure it is boolean
     if "neutral" in matches.columns:
-        matches["neutral"] = matches["neutral"].astype(bool)
+        matches["neutral"] = (
+            matches["neutral"]
+            .replace(
+                {
+                    "TRUE": True,
+                    "True": True,
+                    "true": True,
+                    "FALSE": False,
+                    "False": False,
+                    "false": False,
+                    1: True,
+                    0: False,
+                }
+            )
+            .fillna(False)
+            .astype(bool)
+        )
     
     # Create target column
     matches["match_outcome"] = matches.apply(create_match_outcome, axis=1)
