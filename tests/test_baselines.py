@@ -31,8 +31,8 @@ def test_empirical_baseline_predicts_training_distribution() -> None:
 
     expected = np.array(
         [
-            [0.5, 0.25, 0.25],
-            [0.5, 0.25, 0.25],
+            [0.25, 0.25, 0.5],
+            [0.25, 0.25, 0.5],
         ]
     )
 
@@ -44,9 +44,9 @@ def test_multiclass_brier_score_perfect_prediction_is_zero() -> None:
 
     y_proba = np.array(
         [
-            [1.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0],
             [0.0, 0.0, 1.0],
+            [0.0, 1.0, 0.0],
+            [1.0, 0.0, 0.0],
         ]
     )
 
@@ -64,9 +64,9 @@ def test_evaluate_probability_predictions_returns_expected_metrics() -> None:
 
     y_proba = np.array(
         [
-            [0.8, 0.1, 0.1],
+            [0.1, 0.1, 0.8],
             [0.2, 0.6, 0.2],
-            [0.1, 0.2, 0.7],
+            [0.7, 0.2, 0.1],
         ]
     )
 
