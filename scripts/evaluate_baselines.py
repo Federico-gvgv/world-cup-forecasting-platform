@@ -16,8 +16,8 @@ PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 METRICS_DIR = REPORTS_DIR / "metrics"
 
-TRAIN_PATH = PROCESSED_DATA_DIR / "train_with_elo.csv"
-VALIDATION_PATH = PROCESSED_DATA_DIR / "validation_with_elo.csv"
+TRAIN_PATH = PROCESSED_DATA_DIR / "train_features.csv"
+VALIDATION_PATH = PROCESSED_DATA_DIR / "validation_features.csv"
 
 def main() -> None:
     if not TRAIN_PATH.exists():
@@ -75,6 +75,37 @@ def main() -> None:
         {
             "model": "Elo-only logistic regression",
             **elo_metrics,
+        }
+    )
+
+    print("Evaluating Elo + rolling features logistic regression baseline...")
+
+    feature_columns = [
+        "elo_diff",
+        "home_expected_score",
+        "neutral",
+        "recent_points_diff",
+        "recent_goals_for_diff",
+        "recent_goals_against_diff",
+        "recent_goal_diff_diff",
+    ]
+
+    feature_baseline = EloLogisticRegressionBaseline(
+        feature_columns=feature_columns,
+    )
+    feature_baseline.fit(train)
+
+    feature_proba = feature_baseline.predict_proba(validation)
+
+    feature_metrics = evaluate_probability_predictions(
+        y_true=validation[target_column],
+        y_proba=feature_proba,
+    )
+
+    results.append(
+        {
+            "model": "Elo + rolling features logistic regression",
+            **feature_metrics,
         }
     )
 
