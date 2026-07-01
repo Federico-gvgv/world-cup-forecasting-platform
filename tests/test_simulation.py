@@ -12,6 +12,14 @@ from wc_forecast.simulation.knockout import simulate_knockout_match
 from wc_forecast.simulation.match import MatchProbabilities, simulate_match
 
 
+from wc_forecast.simulation.tournament import (
+    KnockoutPairing,
+    KnockoutSlot,
+    TournamentConfig,
+    simulate_tournament,
+)
+
+
 def test_match_probabilities_must_sum_to_one() -> None:
     with pytest.raises(ValueError):
         MatchProbabilities(
@@ -121,3 +129,116 @@ def test_knockout_match_returns_winner() -> None:
     )
 
     assert winner == "Team A"
+
+
+
+
+
+def _fixed_home_win_provider(
+    team_a: str,
+    team_b: str,
+) -> MatchProbabilities:
+    return MatchProbabilities(
+        home_win=1.0,
+        draw=0.0,
+        away_win=0.0,
+    )
+
+
+def test_tournament_simulation_outputs_probability_table() -> None:
+    group_fixtures = {
+        "A": [
+            GroupFixture(
+                home_team="Team A",
+                away_team="Team B",
+                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
+            )
+        ],
+        "B": [
+            GroupFixture(
+                home_team="Team C",
+                away_team="Team D",
+                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
+            )
+        ],
+    }
+
+    knockout_pairings = [
+        KnockoutPairing(
+            team_a=KnockoutSlot(group_name="A", position=1),
+            team_b=KnockoutSlot(group_name="B", position=2),
+        ),
+        KnockoutPairing(
+            team_a=KnockoutSlot(group_name="B", position=1),
+            team_b=KnockoutSlot(group_name="A", position=2),
+        ),
+    ]
+
+    config = TournamentConfig(
+        group_fixtures=group_fixtures,
+        knockout_pairings=knockout_pairings,
+        n_simulations=10,
+        random_seed=42,
+    )
+
+    results = simulate_tournament(
+        config=config,
+        probability_provider=_fixed_home_win_provider,
+    )
+
+    expected_columns = {
+        "team",
+        "group_qualified_probability",
+        "semi_final_probability",
+        "final_probability",
+        "tournament_win_probability",
+    }
+
+    assert expected_columns.issubset(set(results.columns))
+    assert len(results) == 4
+
+
+def test_deterministic_tournament_has_expected_winner() -> None:
+    group_fixtures = {
+        "A": [
+            GroupFixture(
+                home_team="Team A",
+                away_team="Team B",
+                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
+            )
+        ],
+        "B": [
+            GroupFixture(
+                home_team="Team C",
+                away_team="Team D",
+                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
+            )
+        ],
+    }
+
+    knockout_pairings = [
+        KnockoutPairing(
+            team_a=KnockoutSlot(group_name="A", position=1),
+            team_b=KnockoutSlot(group_name="B", position=2),
+        ),
+        KnockoutPairing(
+            team_a=KnockoutSlot(group_name="B", position=1),
+            team_b=KnockoutSlot(group_name="A", position=2),
+        ),
+    ]
+
+    config = TournamentConfig(
+        group_fixtures=group_fixtures,
+        knockout_pairings=knockout_pairings,
+        n_simulations=10,
+        random_seed=42,
+    )
+
+    results = simulate_tournament(
+        config=config,
+        probability_provider=_fixed_home_win_provider,
+    )
+
+    team_a = results[results["team"] == "Team A"].iloc[0]
+
+    assert team_a["tournament_win_probability"] == 1.0
