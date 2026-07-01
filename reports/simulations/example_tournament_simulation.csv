@@ -1,0 +1,9 @@
+team,group_qualified_probability,round_of_32_probability,round_of_16_probability,quarter_final_probability,semi_final_probability,final_probability,tournament_win_probability
+Argentina,0.6148,0.0,0.0,0.0,0.6148,0.3161,0.1619
+France,0.6144,0.0,0.0,0.0,0.6144,0.3081,0.1544
+Mexico,0.5287,0.0,0.0,0.0,0.5287,0.2656,0.1375
+Denmark,0.5458,0.0,0.0,0.0,0.5458,0.2668,0.1294
+Poland,0.4712,0.0,0.0,0.0,0.4712,0.2344,0.1174
+Tunisia,0.4591,0.0,0.0,0.0,0.4591,0.2274,0.1089
+Saudi Arabia,0.3853,0.0,0.0,0.0,0.3853,0.1917,0.0959
+Australia,0.3807,0.0,0.0,0.0,0.3807,0.1899,0.0946
