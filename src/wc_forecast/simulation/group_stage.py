@@ -14,6 +14,11 @@ class GroupFixture:
     away_team: str
     probabilities: MatchProbabilities
 
+@dataclass(frozen=True)
+class GroupMatchup:
+    home_team: str
+    away_team: str
+
 
 def _empty_standing(team: str) -> dict[str, int | str]:
     return {
@@ -122,3 +127,32 @@ def get_group_qualifiers(
     Return the top N teams from a simulated group table.
     """
     return standings.head(n_qualifiers)["team"].tolist()
+
+
+def simulate_group_stage_with_provider(
+    matchups: list[GroupMatchup],
+    probability_provider,
+    rng: np.random.Generator,
+) -> pd.DataFrame:
+    """
+    Simulate group-stage matchups using a dynamic probability provider.
+
+    The provider is called for every fixture, so group-stage probabilities
+    come from the forecasting model instead of fixed placeholders.
+    """
+    fixtures = [
+        GroupFixture(
+            home_team=matchup.home_team,
+            away_team=matchup.away_team,
+            probabilities=probability_provider(
+                matchup.home_team,
+                matchup.away_team,
+            ),
+        )
+        for matchup in matchups
+    ]
+
+    return simulate_group_stage(
+        fixtures=fixtures,
+        rng=rng,
+    )

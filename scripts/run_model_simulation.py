@@ -3,8 +3,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from wc_forecast.simulation.group_stage import GroupFixture
-from wc_forecast.simulation.match import MatchProbabilities
+from wc_forecast.simulation.group_stage import GroupMatchup
 from wc_forecast.simulation.model_provider import (
     build_model_backed_probability_provider,
 )
@@ -27,36 +26,20 @@ VALIDATION_PATH = PROCESSED_DATA_DIR / "validation_features.csv"
 MATCHES_FEATURES_PATH = PROCESSED_DATA_DIR / "matches_with_features.csv"
 
 
-def make_round_robin_fixtures(
+def make_round_robin_matchups(
     teams: list[str],
-) -> list[GroupFixture]:
-    """
-    Create group fixtures.
-
-    The probabilities here are placeholders because the model-backed
-    provider is used for knockout matches in the current tournament engine.
-
-    In the next refactor, group fixtures will also use a probability provider
-    dynamically.
-    """
-    fixtures = []
-
-    placeholder_probabilities = MatchProbabilities(
-        home_win=0.45,
-        draw=0.25,
-        away_win=0.30,
-    )
+) -> list[GroupMatchup]:
+    matchups = []
 
     for team_a, team_b in combinations(teams, 2):
-        fixtures.append(
-            GroupFixture(
+        matchups.append(
+            GroupMatchup(
                 home_team=team_a,
                 away_team=team_b,
-                probabilities=placeholder_probabilities,
             )
         )
 
-    return fixtures
+    return matchups
 
 
 def main() -> None:
@@ -74,8 +57,8 @@ def main() -> None:
         neutral=True,
     )
 
-    group_fixtures = {
-        "A": make_round_robin_fixtures(
+    group_matchups = {
+        "A": make_round_robin_matchups(
             teams=[
                 "Argentina",
                 "Mexico",
@@ -83,7 +66,7 @@ def main() -> None:
                 "Saudi Arabia",
             ],
         ),
-        "B": make_round_robin_fixtures(
+        "B": make_round_robin_matchups(
             teams=[
                 "France",
                 "Denmark",
@@ -105,7 +88,7 @@ def main() -> None:
     ]
 
     config = TournamentConfig(
-        group_fixtures=group_fixtures,
+        group_matchups=group_matchups,
         knockout_pairings=knockout_pairings,
         n_simulations=10_000,
         random_seed=42,

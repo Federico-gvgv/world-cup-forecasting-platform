@@ -3,7 +3,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from wc_forecast.simulation.group_stage import GroupFixture
+from wc_forecast.simulation.group_stage import GroupMatchup
 from wc_forecast.simulation.match import MatchProbabilities
 from wc_forecast.simulation.tournament import (
     KnockoutPairing,
@@ -18,22 +18,20 @@ REPORTS_DIR = PROJECT_ROOT / "reports"
 SIMULATIONS_DIR = REPORTS_DIR / "simulations"
 
 
-def make_round_robin_fixtures(
+def make_round_robin_matchups(
     teams: list[str],
-    probabilities: MatchProbabilities,
-) -> list[GroupFixture]:
-    fixtures = []
+) -> list[GroupMatchup]:
+    matchups = []
 
     for home_team, away_team in combinations(teams, 2):
-        fixtures.append(
-            GroupFixture(
+        matchups.append(
+            GroupMatchup(
                 home_team=home_team,
                 away_team=away_team,
-                probabilities=probabilities,
             )
         )
 
-    return fixtures
+    return matchups
 
 
 def fixed_probability_provider(
@@ -53,32 +51,22 @@ def fixed_probability_provider(
 
 
 def main() -> None:
-    group_fixtures = {
-        "A": make_round_robin_fixtures(
+    group_matchups = {
+        "A": make_round_robin_matchups(
             teams=[
                 "Argentina",
                 "Mexico",
                 "Poland",
                 "Saudi Arabia",
             ],
-            probabilities=MatchProbabilities(
-                home_win=0.45,
-                draw=0.25,
-                away_win=0.30,
-            ),
         ),
-        "B": make_round_robin_fixtures(
+        "B": make_round_robin_matchups(
             teams=[
                 "France",
                 "Denmark",
                 "Tunisia",
                 "Australia",
             ],
-            probabilities=MatchProbabilities(
-                home_win=0.45,
-                draw=0.25,
-                away_win=0.30,
-            ),
         ),
     }
 
@@ -94,7 +82,7 @@ def main() -> None:
     ]
 
     config = TournamentConfig(
-        group_fixtures=group_fixtures,
+        group_matchups=group_matchups,
         knockout_pairings=knockout_pairings,
         n_simulations=10_000,
         random_seed=42,
