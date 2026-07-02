@@ -6,7 +6,10 @@ from typing import Callable
 import numpy as np
 import pandas as pd
 
-from wc_forecast.simulation.group_stage import GroupFixture, simulate_group_stage
+from wc_forecast.simulation.group_stage import (
+    GroupMatchup,
+    simulate_group_stage_with_provider,
+)
 from wc_forecast.simulation.knockout import simulate_knockout_match
 from wc_forecast.simulation.match import MatchProbabilities
 
@@ -39,18 +42,18 @@ class KnockoutPairing:
 
 @dataclass(frozen=True)
 class TournamentConfig:
-    group_fixtures: dict[str, list[GroupFixture]]
+    group_matchups: dict[str, list[GroupMatchup]]
     knockout_pairings: list[KnockoutPairing]
     n_simulations: int = 1_000
     random_seed: int = 42
 
 
-def _all_teams(group_fixtures: dict[str, list[GroupFixture]]) -> list[str]:
+def _all_teams(group_matchups: dict[str, list[GroupMatchup]]) -> list[str]:
     teams = {
         team
-        for fixtures in group_fixtures.values()
-        for fixture in fixtures
-        for team in [fixture.home_team, fixture.away_team]
+        for matchups in group_matchups.values()
+        for matchup in matchups
+        for team in [matchup.home_team, matchup.away_team]
     }
 
     return sorted(teams)
@@ -99,14 +102,15 @@ def simulate_single_tournament(
     This function is model-agnostic. It only requires a probability provider
     that can return W/D/L probabilities for any two teams.
     """
-    teams = _all_teams(config.group_fixtures)
+    teams = _all_teams(config.group_matchups)
     achievements = _initialise_achievements(teams)
 
     slot_to_team: dict[tuple[str, int], str] = {}
 
-    for group_name, fixtures in config.group_fixtures.items():
-        standings = simulate_group_stage(
-            fixtures=fixtures,
+    for group_name, matchups in config.group_matchups.items():
+        standings = simulate_group_stage_with_provider(
+            matchups=matchups,
+            probability_provider=probability_provider,
             rng=rng,
         )
 
@@ -195,7 +199,7 @@ def simulate_tournament(
     if config.n_simulations <= 0:
         raise ValueError("n_simulations must be positive.")
 
-    teams = _all_teams(config.group_fixtures)
+    teams = _all_teams(config.group_matchups)
     cumulative_counts = _initialise_achievements(teams)
 
     rng = np.random.default_rng(config.random_seed)

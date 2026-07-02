@@ -5,13 +5,12 @@ import pytest
 
 from wc_forecast.simulation.group_stage import (
     GroupFixture,
+    GroupMatchup,
     get_group_qualifiers,
     simulate_group_stage,
 )
 from wc_forecast.simulation.knockout import simulate_knockout_match
 from wc_forecast.simulation.match import MatchProbabilities, simulate_match
-
-
 from wc_forecast.simulation.tournament import (
     KnockoutPairing,
     KnockoutSlot,
@@ -131,9 +130,6 @@ def test_knockout_match_returns_winner() -> None:
     assert winner == "Team A"
 
 
-
-
-
 def _fixed_home_win_provider(
     team_a: str,
     team_b: str,
@@ -146,19 +142,17 @@ def _fixed_home_win_provider(
 
 
 def test_tournament_simulation_outputs_probability_table() -> None:
-    group_fixtures = {
+    group_matchups = {
         "A": [
-            GroupFixture(
+            GroupMatchup(
                 home_team="Team A",
                 away_team="Team B",
-                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
             )
         ],
         "B": [
-            GroupFixture(
+            GroupMatchup(
                 home_team="Team C",
                 away_team="Team D",
-                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
             )
         ],
     }
@@ -175,7 +169,7 @@ def test_tournament_simulation_outputs_probability_table() -> None:
     ]
 
     config = TournamentConfig(
-        group_fixtures=group_fixtures,
+        group_matchups=group_matchups,
         knockout_pairings=knockout_pairings,
         n_simulations=10,
         random_seed=42,
@@ -199,19 +193,17 @@ def test_tournament_simulation_outputs_probability_table() -> None:
 
 
 def test_deterministic_tournament_has_expected_winner() -> None:
-    group_fixtures = {
+    group_matchups = {
         "A": [
-            GroupFixture(
+            GroupMatchup(
                 home_team="Team A",
                 away_team="Team B",
-                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
             )
         ],
         "B": [
-            GroupFixture(
+            GroupMatchup(
                 home_team="Team C",
                 away_team="Team D",
-                probabilities=MatchProbabilities(1.0, 0.0, 0.0),
             )
         ],
     }
@@ -228,7 +220,7 @@ def test_deterministic_tournament_has_expected_winner() -> None:
     ]
 
     config = TournamentConfig(
-        group_fixtures=group_fixtures,
+        group_matchups=group_matchups,
         knockout_pairings=knockout_pairings,
         n_simulations=10,
         random_seed=42,
