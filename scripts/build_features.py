@@ -41,7 +41,7 @@ def main() -> None:
     test.to_csv(PROCESSED_DATA_DIR / "test_features.csv", index=False)
 
     print("Saved feature files:")
-    print(f"- {PROCESSED_DATA_DIR / 'matches_features.csv'}")
+    print(f"- {PROCESSED_DATA_DIR / 'matches_with_features.csv'}")
     print(f"- {PROCESSED_DATA_DIR / 'train_features.csv'}")
     print(f"- {PROCESSED_DATA_DIR / 'validation_features.csv'}")
     print(f"- {PROCESSED_DATA_DIR / 'test_features.csv'}")
