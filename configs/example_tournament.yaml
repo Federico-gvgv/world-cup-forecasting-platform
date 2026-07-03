@@ -1,0 +1,31 @@
+simulation:
+  n_simulations: 10000
+  random_seed: 42
+  use_calibration: true
+  neutral: true
+
+groups:
+  A:
+    - Argentina
+    - Mexico
+    - Poland
+    - Saudi Arabia
+  B:
+    - France
+    - Denmark
+    - Tunisia
+    - Australia
+
+knockout_pairings:
+  - team_a:
+      group: A
+      position: 1
+    team_b:
+      group: B
+      position: 2
+  - team_a:
+      group: B
+      position: 1
+    team_b:
+      group: A
+      position: 2
