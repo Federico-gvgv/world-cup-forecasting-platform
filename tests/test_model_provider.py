@@ -135,3 +135,78 @@ def test_model_backed_probability_provider_returns_probabilities() -> None:
     )
 
     np.testing.assert_allclose(probability_sum, 1.0)
+
+
+class _FakeFeatureStore:
+    def make_match_features(
+        self,
+        team_a: str,
+        team_b: str,
+        neutral: bool = True,
+    ) -> pd.DataFrame:
+        return pd.DataFrame(
+            {
+                "pair": [f"{team_a}-{team_b}"],
+            }
+        )
+
+
+class _FakeAsymmetricModel:
+    def predict_proba(self, features: pd.DataFrame) -> np.ndarray:
+        pair = features["pair"].iloc[0]
+
+        if pair == "Team A-Team B":
+            return np.array([[0.20, 0.20, 0.60]])
+
+        if pair == "Team B-Team A":
+            return np.array([[0.20, 0.10, 0.70]])
+
+        return np.array([[0.33, 0.34, 0.33]])
+
+
+def test_neutral_probability_provider_symmetrises_predictions() -> None:
+    provider = ModelBackedProbabilityProvider(
+        model=_FakeAsymmetricModel(),
+        feature_store=_FakeFeatureStore(),
+        neutral=True,
+    )
+
+    probabilities = provider(
+        team_a="Team A",
+        team_b="Team B",
+    )
+
+    # Model outputs are ordered as [AWAY_WIN, DRAW, HOME_WIN].
+    #
+    # Forward: Team B win = 0.20, draw = 0.20, Team A win = 0.60
+    # Reverse: Team A win = 0.20, draw = 0.10, Team B win = 0.70
+    #
+    # Symmetric Team A win = average(0.60, 0.20) = 0.40
+    # Symmetric draw       = average(0.20, 0.10) = 0.15
+    # Symmetric Team B win = average(0.20, 0.70) = 0.45
+
+    np.testing.assert_allclose(probabilities.home_win, 0.40)
+    np.testing.assert_allclose(probabilities.draw, 0.15)
+    np.testing.assert_allclose(probabilities.away_win, 0.45)
+
+
+class _FakeClassOrderModel:
+    def predict_proba(self, features: pd.DataFrame) -> np.ndarray:
+        return np.array([[0.10, 0.20, 0.70]])
+
+
+def test_probability_provider_maps_model_class_order_to_match_probabilities() -> None:
+    provider = ModelBackedProbabilityProvider(
+        model=_FakeClassOrderModel(),
+        feature_store=_FakeFeatureStore(),
+        neutral=False,
+    )
+
+    probabilities = provider(
+        team_a="Team A",
+        team_b="Team B",
+    )
+
+    np.testing.assert_allclose(probabilities.home_win, 0.70)
+    np.testing.assert_allclose(probabilities.draw, 0.20)
+    np.testing.assert_allclose(probabilities.away_win, 0.10)
