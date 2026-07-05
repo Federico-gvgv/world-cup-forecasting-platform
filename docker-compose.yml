@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: world-cup-forecasting-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data:ro
+      - ./reports:/app/reports:ro
+      - ./configs:/app/configs:ro
+    environment:
+      - PYTHONPATH=/app/src
