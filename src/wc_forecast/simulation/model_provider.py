@@ -238,6 +238,10 @@ class ModelBackedProbabilityProvider:
     - calls the trained model
     - optionally applies calibration
     - returns MatchProbabilities
+
+    For neutral matches, it symmetrises predictions by evaluating both
+    team orderings and averaging them. This avoids artefacts where the
+    arbitrary Team A / Team B ordering changes neutral-site probabilities.
     """
 
     def __init__(
@@ -257,10 +261,37 @@ class ModelBackedProbabilityProvider:
         team_a: str,
         team_b: str,
     ) -> MatchProbabilities:
+        if self.neutral:
+            probabilities = self._predict_neutral_symmetric(
+                team_a=team_a,
+                team_b=team_b,
+            )
+        else:
+            probabilities = self._predict_one_direction(
+                team_a=team_a,
+                team_b=team_b,
+                neutral=False,
+            )
+
+        probabilities = np.clip(probabilities, 0.0, 1.0)
+        probabilities = probabilities / probabilities.sum()
+
+        return MatchProbabilities(
+            home_win=float(probabilities[2]),
+            draw=float(probabilities[1]),
+            away_win=float(probabilities[0]),
+        )
+
+    def _predict_one_direction(
+        self,
+        team_a: str,
+        team_b: str,
+        neutral: bool,
+    ) -> np.ndarray:
         features = self.feature_store.make_match_features(
             team_a=team_a,
             team_b=team_b,
-            neutral=self.neutral,
+            neutral=neutral,
         )
 
         probabilities = self.model.predict_proba(features)
@@ -268,16 +299,57 @@ class ModelBackedProbabilityProvider:
         if self.calibrator is not None:
             probabilities = self.calibrator.predict_proba(probabilities)
 
-        probabilities = probabilities[0]
+        return probabilities[0]
 
-        # Numerical safety: clip and renormalise.
-        probabilities = np.clip(probabilities, 0.0, 1.0)
-        probabilities = probabilities / probabilities.sum()
+    def _predict_neutral_symmetric(
+        self,
+        team_a: str,
+        team_b: str,
+    ) -> np.ndarray:
+        """
+        Predict a neutral-site match in an order-invariant way.
 
-        return MatchProbabilities(
-            home_win=float(probabilities[0]),
-            draw=float(probabilities[1]),
-            away_win=float(probabilities[2]),
+        Model probabilities are ordered as [AWAY_WIN, DRAW, HOME_WIN].
+
+        Forward prediction:
+            team_a vs team_b
+            [P(team_b win), P(draw), P(team_a win)]
+
+        Reverse prediction:
+            team_b vs team_a
+            [P(team_a win), P(draw), P(team_b win)]
+
+        Convert reverse prediction back into team_a/team_b perspective,
+        then average.
+        """
+        forward = self._predict_one_direction(
+            team_a=team_a,
+            team_b=team_b,
+            neutral=True,
+        )
+
+        reverse = self._predict_one_direction(
+            team_a=team_b,
+            team_b=team_a,
+            neutral=True,
+        )
+
+        team_b_win_probability = 0.5 * (
+            forward[0] + reverse[2]
+        )
+        draw_probability = 0.5 * (
+            forward[1] + reverse[1]
+        )
+        team_a_win_probability = 0.5 * (
+            forward[2] + reverse[0]
+        )
+
+        return np.array(
+            [
+                team_b_win_probability,
+                draw_probability,
+                team_a_win_probability,
+            ]
         )
 
 
