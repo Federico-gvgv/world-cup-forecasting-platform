@@ -49,7 +49,9 @@ models/*.yml
 !models/README.md
 
 # Reports generated locally
-reports/figures/
+reports/figures/*
+!reports/figures/screenshots/
+!reports/figures/screenshots/*.png
 reports/*.html
 
 # Logs
