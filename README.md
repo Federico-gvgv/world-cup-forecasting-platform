@@ -76,6 +76,26 @@ Core modules:
 - `scripts/`: reproducible pipeline and evaluation commands
 - `tests/`: regression tests for data, models, simulation, API, and calibration
 
+## Data
+
+This repository does not include the raw or processed match CSV files. The project expects a public international football results dataset with a `results.csv` file, such as the commonly used Kaggle international football results dataset.
+
+Download `results.csv` and place it at:
+
+```text
+data/raw/results.csv
+```
+
+Then build the processed datasets:
+
+```bash
+python scripts/prepare_data.py
+python scripts/build_elo_features.py
+python scripts/build_features.py
+```
+
+The repository includes empty `data/raw/` and `data/processed/` folders via `.gitkeep` files, but generated CSVs are intentionally ignored.
+
 ## Model Results
 
 Validation model comparison:
@@ -126,6 +146,17 @@ Run tests:
 ```bash
 pytest
 ```
+
+The API tests instantiate the forecasting service, so in a clean clone you should run the data pipeline before running the full test suite:
+
+```bash
+python scripts/prepare_data.py
+python scripts/build_elo_features.py
+python scripts/build_features.py
+pytest
+```
+
+Future improvement: mock `ForecastService` in `tests/test_api.py` so API tests do not depend on local processed data files.
 
 ## Run the API
 
@@ -206,7 +237,7 @@ The simulator:
 - Repeats the tournament many times
 - Reports stage and title probabilities
 
-The example config is intentionally small, so a team that qualifies from the group immediately reaches the semifinal. Full-size tournament configs can be added using the same structure.
+The example config is intentionally small, so a team that qualifies from the group immediately reaches the semifinal. This should be described as a World Cup-style tournament simulator, not a full 2026 World Cup simulator. Full-size tournament configs can be added using the same structure.
 
 ## Engineering Notes
 
