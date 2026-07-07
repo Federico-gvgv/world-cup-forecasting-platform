@@ -1,12 +1,70 @@
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
-from wc_forecast.api.main import app
+from wc_forecast.api import main as api_main
+from wc_forecast.simulation.match import MatchProbabilities
+
+
+class FakeForecastService:
+    def predict_match(
+        self,
+        home_team: str,
+        away_team: str,
+        neutral: bool = True,
+    ) -> MatchProbabilities:
+        return MatchProbabilities(
+            home_win=0.5,
+            draw=0.25,
+            away_win=0.25,
+        )
+
+    def load_model_metrics(self) -> list[dict[str, object]]:
+        return [
+            {
+                "model": "fake-model",
+                "accuracy": 0.5,
+                "log_loss": 1.0,
+                "brier_score": 0.6,
+                "ece": 0.1,
+                "source_file": "fake_metrics.csv",
+            }
+        ]
+
+    def simulate_tournament_from_config(
+        self,
+        config_path: str,
+        n_simulations: int | None = None,
+        use_calibration: bool | None = None,
+        neutral: bool | None = None,
+    ) -> tuple[int, list[dict[str, object]]]:
+        return (
+            n_simulations or 1000,
+            [
+                {
+                    "team": "Team A",
+                    "group_qualified_probability": 1.0,
+                    "round_of_32_probability": 1.0,
+                    "round_of_16_probability": 1.0,
+                    "quarter_final_probability": 1.0,
+                    "semi_final_probability": 1.0,
+                    "final_probability": 1.0,
+                    "tournament_win_probability": 1.0,
+                }
+            ],
+        )
+
+
+@pytest.fixture(autouse=True)
+def use_fake_forecast_service(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(api_main, "ForecastService", FakeForecastService)
 
 
 def test_health_endpoint() -> None:
-    with TestClient(app) as client:
+    with TestClient(api_main.app) as client:
         response = client.get("/health")
 
     assert response.status_code == 200
@@ -18,7 +76,7 @@ def test_health_endpoint() -> None:
 
 
 def test_predict_match_rejects_same_team() -> None:
-    with TestClient(app) as client:
+    with TestClient(api_main.app) as client:
         response = client.post(
             "/predict_match",
             json={
@@ -32,7 +90,7 @@ def test_predict_match_rejects_same_team() -> None:
 
 
 def test_predict_match_returns_probabilities() -> None:
-    with TestClient(app) as client:
+    with TestClient(api_main.app) as client:
         response = client.post(
             "/predict_match",
             json={
@@ -61,7 +119,7 @@ def test_predict_match_returns_probabilities() -> None:
 
 
 def test_model_metrics_endpoint() -> None:
-    with TestClient(app) as client:
+    with TestClient(api_main.app) as client:
         response = client.get("/model_metrics")
 
     assert response.status_code == 200
@@ -70,10 +128,11 @@ def test_model_metrics_endpoint() -> None:
 
     assert "metrics" in payload
     assert isinstance(payload["metrics"], list)
+    assert payload["metrics"][0]["model"] == "fake-model"
 
 
 def test_simulate_tournament_endpoint() -> None:
-    with TestClient(app) as client:
+    with TestClient(api_main.app) as client:
         response = client.post(
             "/simulate_tournament",
             json={

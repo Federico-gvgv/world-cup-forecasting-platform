@@ -153,16 +153,13 @@ Run tests:
 pytest
 ```
 
-The API tests instantiate the forecasting service, so in a clean clone you should run the data pipeline before running the full test suite:
+The API tests use a lightweight fake forecasting service, so the test suite can run in a clean clone without processed data files. To run the real API, dashboard, or model-backed simulation, build the data first:
 
 ```bash
 python scripts/prepare_data.py
 python scripts/build_elo_features.py
 python scripts/build_features.py
-pytest
 ```
-
-Future improvement: mock `ForecastService` in `tests/test_api.py` so API tests do not depend on local processed data files.
 
 ## Run the API
 
