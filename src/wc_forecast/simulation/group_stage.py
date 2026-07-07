@@ -115,6 +115,7 @@ def simulate_group_stage(
             "draws",
             "losses",
             "points",
+            "tie_break",
         ]
     ]
 

@@ -92,3 +92,42 @@ def test_load_simulation_options(tmp_path: Path) -> None:
 
     assert options["use_calibration"] is False
     assert options["neutral"] is True
+
+
+def test_load_world_cup_2026_config_without_knockout_pairings(
+    tmp_path: Path,
+) -> None:
+    groups = {}
+
+    for group_index in range(12):
+        group_name = chr(ord("A") + group_index)
+        groups[group_name] = [
+            f"Team {group_name}{team_index}"
+            for team_index in range(1, 5)
+        ]
+
+    config = {
+        "format": "world_cup_2026",
+        "simulation": {
+            "n_simulations": 100,
+            "random_seed": 123,
+            "use_calibration": True,
+            "neutral": True,
+        },
+        "groups": groups,
+    }
+
+    config_path = tmp_path / "world_cup_2026.yaml"
+
+    with config_path.open("w", encoding="utf-8") as file:
+        yaml.safe_dump(config, file)
+
+    tournament_config = load_tournament_config(config_path)
+
+    assert tournament_config.tournament_format == "world_cup_2026"
+    assert tournament_config.knockout_pairings == []
+    assert len(tournament_config.group_matchups) == 12
+    assert all(
+        len(group_matchups) == 6
+        for group_matchups in tournament_config.group_matchups.values()
+    )

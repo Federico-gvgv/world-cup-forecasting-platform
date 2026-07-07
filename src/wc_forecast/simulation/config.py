@@ -46,6 +46,8 @@ def load_tournament_config(path: Path) -> TournamentConfig:
 
     Expected structure:
 
+    format: world_cup_2026  # optional; defaults to explicit
+
     simulation:
       n_simulations: 10000
       random_seed: 42
@@ -55,7 +57,7 @@ def load_tournament_config(path: Path) -> TournamentConfig:
         - Team 1
         - Team 2
 
-    knockout_pairings:
+    knockout_pairings:  # required for explicit mode only
       - team_a:
           group: A
           position: 1
@@ -65,15 +67,25 @@ def load_tournament_config(path: Path) -> TournamentConfig:
     """
     config = _load_yaml(path)
 
+    tournament_format = str(config.get("format", "explicit"))
     simulation_config = config.get("simulation", {})
     groups = config.get("groups")
-    knockout_pairings_config = config.get("knockout_pairings")
+    knockout_pairings_config = config.get("knockout_pairings", [])
 
     if not isinstance(groups, dict):
         raise ValueError("Config must contain a 'groups' mapping.")
 
+    if tournament_format not in {"explicit", "world_cup_2026"}:
+        raise ValueError(f"Unsupported tournament format: {tournament_format}")
+
+    if tournament_format == "explicit" and "knockout_pairings" not in config:
+        raise ValueError("Explicit config must contain a 'knockout_pairings' list.")
+
     if not isinstance(knockout_pairings_config, list):
-        raise ValueError("Config must contain a 'knockout_pairings' list.")
+        raise ValueError("'knockout_pairings' must be a list.")
+
+    if tournament_format == "world_cup_2026" and len(groups) != 12:
+        raise ValueError("world_cup_2026 format requires exactly 12 groups.")
 
     group_matchups: dict[str, list[GroupMatchup]] = {}
 
@@ -83,6 +95,12 @@ def load_tournament_config(path: Path) -> TournamentConfig:
 
         if len(teams) < 2:
             raise ValueError(f"Group {group_name} must contain at least two teams.")
+
+        if tournament_format == "world_cup_2026" and len(teams) != 4:
+            raise ValueError(
+                f"Group {group_name} must contain exactly four teams "
+                "for world_cup_2026 format."
+            )
 
         group_matchups[str(group_name)] = make_round_robin_matchups(
             teams=[str(team) for team in teams]
@@ -110,6 +128,7 @@ def load_tournament_config(path: Path) -> TournamentConfig:
     return TournamentConfig(
         group_matchups=group_matchups,
         knockout_pairings=knockout_pairings,
+        tournament_format=tournament_format,
         n_simulations=int(simulation_config.get("n_simulations", 1_000)),
         random_seed=int(simulation_config.get("random_seed", 42)),
     )

@@ -47,6 +47,7 @@ A calibration layer was fitted on validation data and evaluated using proper sco
 - The model should not be interpreted as a betting system.
 
 ## Future Work
+- Add FIFA's official 2026 third-place allocation/bracket rules
 - Add scoreline/Poisson simulation
 - Improve tie-break rules
 - Add FIFA rankings or squad-strength features

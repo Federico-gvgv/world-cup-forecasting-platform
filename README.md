@@ -138,6 +138,12 @@ python scripts/evaluate_final_model.py
 Run a model-backed tournament simulation:
 
 ```bash
+python scripts/run_model_simulation.py --config configs/world_cup_2026.yaml
+```
+
+The older toy config is still supported:
+
+```bash
 python scripts/run_model_simulation.py --config configs/example_tournament.yaml
 ```
 
@@ -225,19 +231,22 @@ The Compose setup mounts `data/`, `reports/`, and `configs/` into the containers
 Tournament setup lives in YAML files such as:
 
 ```text
-configs/example_tournament.yaml
+configs/world_cup_2026.yaml
 ```
 
 The simulator:
 
 - Builds group-stage fixtures from config
+- Supports a 2026-style 48-team format with 12 groups of 4
+- Qualifies the top 2 teams from each group plus the 8 best third-place teams
 - Gets match probabilities from the trained model provider
 - Simulates group standings
-- Simulates knockout rounds
+- Builds a simplified deterministic 32-team knockout bracket
+- Simulates knockout rounds through the final
 - Repeats the tournament many times
 - Reports stage and title probabilities
 
-The example config is intentionally small, so a team that qualifies from the group immediately reaches the semifinal. This should be described as a World Cup-style tournament simulator, not a full 2026 World Cup simulator. Full-size tournament configs can be added using the same structure.
+The `world_cup_2026` mode is a World Cup-style simulator, not an exact FIFA bracket reproduction. It uses the real 2026-style qualification shape, but assigns the Round of 32 with a simplified deterministic seeding rule rather than FIFA's official third-place allocation table. The smaller `configs/example_tournament.yaml` remains available as a fast toy example.
 
 ## Engineering Notes
 
@@ -257,7 +266,7 @@ This project is intended as a forecasting and engineering portfolio project, not
 
 ## Future Work
 
-- Add full 48-team World Cup configs
+- Add FIFA's official 2026 third-place allocation/bracket rules
 - Add scoreline or Poisson-based simulation
 - Improve group tie-break rules
 - Add richer features such as squad strength or FIFA ranking history

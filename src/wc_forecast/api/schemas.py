@@ -38,7 +38,7 @@ class ModelMetricsResponse(BaseModel):
 
 
 class SimulateTournamentRequest(BaseModel):
-    config_path: str = "configs/example_tournament.yaml"
+    config_path: str = "configs/world_cup_2026.yaml"
     n_simulations: int | None = Field(default=None, ge=1, le=20_000)
     use_calibration: bool | None = None
     neutral: bool | None = None

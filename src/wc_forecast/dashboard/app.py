@@ -162,7 +162,7 @@ def render_tournament_simulation(api_base_url: str) -> None:
     with st.form("tournament_simulation_form"):
         config_path = st.text_input(
             "Tournament config path",
-            value="configs/example_tournament.yaml",
+            value="configs/world_cup_2026.yaml",
         )
 
         col1, col2, col3 = st.columns(3)

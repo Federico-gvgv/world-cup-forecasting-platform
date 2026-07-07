@@ -15,6 +15,7 @@ from wc_forecast.simulation.tournament import (
     KnockoutPairing,
     KnockoutSlot,
     TournamentConfig,
+    rank_third_place_teams,
     simulate_tournament,
 )
 
@@ -234,3 +235,54 @@ def test_deterministic_tournament_has_expected_winner() -> None:
     team_a = results[results["team"] == "Team A"].iloc[0]
 
     assert team_a["tournament_win_probability"] == 1.0
+
+
+def test_rank_third_place_teams_uses_points_wins_and_tie_break() -> None:
+    third_place_rows = [
+        {"team": "Team A", "points": 4, "wins": 1, "tie_break": 0.10},
+        {"team": "Team B", "points": 5, "wins": 1, "tie_break": 0.20},
+        {"team": "Team C", "points": 4, "wins": 2, "tie_break": 0.05},
+        {"team": "Team D", "points": 4, "wins": 1, "tie_break": 0.90},
+    ]
+
+    ranked_teams = rank_third_place_teams(third_place_rows)
+
+    assert ranked_teams == ["Team B", "Team C", "Team D", "Team A"]
+
+
+def test_world_cup_2026_format_sends_32_teams_to_knockout() -> None:
+    group_matchups = {}
+
+    for group_index in range(12):
+        group_name = chr(ord("A") + group_index)
+        teams = [
+            f"Team {group_name}{team_index}"
+            for team_index in range(1, 5)
+        ]
+        group_matchups[group_name] = [
+            GroupMatchup(home_team=home_team, away_team=away_team)
+            for home_index, home_team in enumerate(teams)
+            for away_team in teams[home_index + 1:]
+        ]
+
+    config = TournamentConfig(
+        group_matchups=group_matchups,
+        knockout_pairings=[],
+        tournament_format="world_cup_2026",
+        n_simulations=1,
+        random_seed=42,
+    )
+
+    results = simulate_tournament(
+        config=config,
+        probability_provider=_fixed_home_win_provider,
+    )
+
+    assert len(results) == 48
+    assert results["group_qualified_probability"].sum() == 32.0
+    assert results["round_of_32_probability"].sum() == 32.0
+    assert results["round_of_16_probability"].sum() == 16.0
+    assert results["quarter_final_probability"].sum() == 8.0
+    assert results["semi_final_probability"].sum() == 4.0
+    assert results["final_probability"].sum() == 2.0
+    assert results["tournament_win_probability"].sum() == 1.0

@@ -111,10 +111,10 @@ The current full test suite passes with 41 tests.
 
 The model is intentionally lightweight and uses match-level historical data only. It does not include player injuries, squad selection, tactical systems, bookmaker odds, travel burden, rest days, competition importance, or player-level quality. Group-stage tie-breaks are simplified, and knockout draws are resolved with a simple random tie-break rather than scoreline or penalty-specific modeling.
 
-The example tournament config is a small toy tournament with two groups, so the first knockout round is effectively a semifinal. This is useful for demonstration but should not be interpreted as a full World Cup structure.
+The project now includes a 48-team, 12-group `world_cup_2026` config. It should still be interpreted as a World Cup-style simulator rather than an exact reproduction of FIFA's official 2026 bracket, because the Round of 32 assignment uses a simplified deterministic seeding rule instead of the official third-place allocation table. The smaller example config remains useful for quick tests and demonstrations.
 
 ## 10. Future Work
 
-Future improvements could include full 48-team World Cup configs, scoreline simulation, Poisson-style goal modeling, more realistic group tie-breaks, squad-strength features, confidence intervals around tournament probabilities, and cloud deployment for the API and dashboard.
+Future improvements could include FIFA's official 2026 third-place allocation table, scoreline simulation, Poisson-style goal modeling, more realistic group tie-breaks, squad-strength features, confidence intervals around tournament probabilities, and cloud deployment for the API and dashboard.
 
 Overall, the project demonstrates an end-to-end probabilistic forecasting workflow: careful data preparation, leakage-aware features, model comparison, probability calibration, simulation, testing, and interactive serving.

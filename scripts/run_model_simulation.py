@@ -23,7 +23,7 @@ TRAIN_PATH = PROCESSED_DATA_DIR / "train_features.csv"
 VALIDATION_PATH = PROCESSED_DATA_DIR / "validation_features.csv"
 MATCHES_FEATURES_PATH = PROCESSED_DATA_DIR / "matches_with_features.csv"
 
-DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "example_tournament.yaml"
+DEFAULT_CONFIG_PATH = PROJECT_ROOT / "configs" / "world_cup_2026.yaml"
 
 
 def parse_args() -> argparse.Namespace:
